@@ -37,7 +37,7 @@ class Hooks
 
   test: (name, hook) =>
     if @contentTests[name]?
-      throw new Error("Cannot have more than one test with the same name")
+      throw new Error("Cannot have more than one test with the name: #{name}")
     @contentTests[name] = hook
 
   runBeforeAll: (callback) =>
