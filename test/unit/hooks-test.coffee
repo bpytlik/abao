@@ -339,7 +339,7 @@ describe 'Hooks', () ->
         assert.ok funcs[2].called
         assert.ok funcs[3].called
 
-  describe 'when succesffuly adding test hook', () ->
+  describe 'when successfully adding test hook', () ->
 
     afterEach () ->
       hooks.contentTests = {}
