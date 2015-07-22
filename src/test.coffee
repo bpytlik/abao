@@ -92,9 +92,5 @@ class Test
       # Update @response
       @response.body = json
 
-class SkippedTest
-  constructor: (name) ->
-    @skip = true
+module.exports = Test
 
-module.exports.Test = Test
-module.exports.SkippedTest = SkippedTest

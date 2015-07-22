@@ -61,9 +61,6 @@ class TestRunner
             return done()
 
           # Update test.request
-          if test.skip
-            return done()
-
           test.request.server = server
           _.extend(test.request.headers, options.header)
 

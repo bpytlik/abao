@@ -27,6 +27,7 @@ describe '#addTests', ->
           callback = sinon.stub()
           callback.returns(done())
 
+          console.error("calling addTests")
           addTests data, tests, hooks, callback
         , done
       after ->
