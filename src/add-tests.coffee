@@ -32,15 +32,32 @@ addTests = (raml, tests, hooks, parent, callback) ->
 
   return callback() unless raml.resources
 
+  console.error("raml keys:")
+  console.error(Object.keys(raml))
+
+  securedBy = raml.securedBy ? parent.securedBy
+  parent ?= {
+    path: "",
+    params: {}
+  }
+  if not parent.security_schemes?
+      parent.security_schemes = {}
+      for scheme_map in raml.securitySchemes ? []
+        for s in securedBy ? []
+          if scheme_map[s]?
+            parent.security_schemes[s] ?= []
+            parent.security_schemes[s].push(scheme_map[s])
+  console.error("parent.security_schemes:")
+  console.error(parent.security_schemes)
+
   # Iterate endpoint
   async.each raml.resources, (resource, callback) ->
     path = resource.relativeUri
     params = {}
 
     # Apply parent properties
-    if parent
-      path = parent.path + path
-      params = _.clone parent.params
+    path = parent.path + path
+    params = _.clone parent.params
 
     # Setup param
     if resource.uriParameters
@@ -53,20 +70,20 @@ addTests = (raml, tests, hooks, parent, callback) ->
     # Iterate response method
     async.each resource.methods, (api, callback) ->
       method = api.method.toUpperCase()
+      headers = parseHeaders(api.headers)
 
-      # Iterate response status
-      for status, res of api.responses
-
+      buildTest = (status, res, security) ->
         testName = "#{method} #{path} -> #{status}"
+        if security?
+          testName += " (#{security})"
 
         # Append new test to tests
         test = new Test(testName, hooks.contentTests[testName])
-        tests.push test
 
         # Update test.request
         test.request.path = path
         test.request.method = method
-        test.request.headers = parseHeaders(api.headers)
+        test.request.headers = headers
         if api.body?['application/json']
           test.request.headers['Content-Type'] = 'application/json'
           try
@@ -80,13 +97,33 @@ addTests = (raml, tests, hooks, parent, callback) ->
         test.response.schema = null
         if (res?.body?['application/json']?.schema)
           test.response.schema = parseSchema res.body['application/json'].schema
-        
+        return test
+
+      # Iterate response status
+      for status, res of api.responses
+        tests.push buildTest(status, res)
+
+      for scheme, lst of parent.security_schemes
+        console.error("scheme: #{scheme}")
+        for l in lst
+          console.error("l:")
+          console.error(l)
+          for status, res of l.describedBy?.responses ? {}
+            console.error("sec status:#{status}")
+            tests.push buildTest(status, res, scheme)
+
       callback()
     , (err) ->
       return callback(err) if err
 
       # Recursive
-      addTests resource, tests, hooks, {path, params}, callback
+      parent = {
+        path: path,
+        params: params,
+        securedBy: securedBy,
+        security_schemes: parent.security_schemes
+      }
+      addTests resource, tests, hooks, parent, callback
   , callback
 
 
