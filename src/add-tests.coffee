@@ -40,22 +40,7 @@ addTests = (raml, tests, hooks, parent, callback) ->
     params: {}
   }
 
-  console.error("\n\n\nworking on:")
-  console.error(raml.relativeUri)
-  console.error("raml.securedBy:")
-  console.error(raml.securedBy)
-  console.error("parent.securedBy:")
-  console.error(parent.securedBy)
   top_securedBy = raml.securedBy ? parent.securedBy
-  console.error("top_securedBy:")
-  console.error(top_securedBy)
-  # if not parent.security_schemes?
-  #     parent.security_schemes = {}
-  #     for scheme_map in raml.securitySchemes ? []
-  #       for s in top_securedBy ? []
-  #         if scheme_map[s]?
-  #           parent.security_schemes[s] ?= []
-  #           parent.security_schemes[s].push(scheme_map[s])
 
   if not parent.security_schemes?
     parent.security_schemes = {}
