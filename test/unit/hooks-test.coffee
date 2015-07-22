@@ -362,3 +362,64 @@ describe 'Hooks', () ->
       f()
       assert.throw f,
         "Cannot have more than one test with the name: #{test_name}"
+
+  describe 'when successfully skipping a test', () ->
+    afterEach () ->
+      hooks.skips = []
+
+    test_name = "skipped_test"
+
+    it 'should get added to the list of skipped tests', () ->
+      hooks.skip(test_name)
+      assert.include(hooks.skips, test_name)
+
+  describe 'skipping a test with a hook fails', () ->
+    afterEach () ->
+      hooks.skips = []
+      hooks.beforeHooks = {}
+      hooks.afterHooks = {}
+      hooks.contentTests = {}
+
+    test_name = "skipped_test"
+
+    it 'when a before hook has been added previously', () ->
+      hooks.before(test_name, ()->)
+      f = () ->
+        hooks.skip(test_name)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."
+
+    it 'when an after hook has been added previously', () ->
+      hooks.after(test_name, ()->)
+      f = () ->
+        hooks.skip(test_name)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."
+
+    it 'when a test hook has been added previously', () ->
+      hooks.test(test_name, ()->)
+      f = () ->
+        hooks.skip(test_name)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."
+
+    it 'when a before hook is added later', () ->
+      hooks.skip(test_name)
+      f = () ->
+        hooks.before(test_name, ()->)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."
+
+    it 'when an after hook is added later', () ->
+      hooks.skip(test_name)
+      f = () ->
+        hooks.after(test_name, ()->)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."
+
+    it 'when a test hook is added later', () ->
+      hooks.skip(test_name)
+      f = () ->
+        hooks.test(test_name, ()->)
+      assert.throw f,
+        "Cannot skip #{test_name} while also having a hook for it."

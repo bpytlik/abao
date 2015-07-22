@@ -41,6 +41,8 @@ class Hooks
   test: (name, hook) =>
     if @contentTests[name]?
       throw new Error("Cannot have more than one test with the name: #{name}")
+    if name in @skips
+      throw new Error("Cannot skip #{name} while also having a hook for it.")
     @contentTests[name] = hook
 
   skip: (name) =>

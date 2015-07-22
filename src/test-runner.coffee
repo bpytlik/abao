@@ -37,11 +37,8 @@ class TestRunner
       , {hooks, test}
 
     # Setup test
-    if test.skip
-      title = "Skipped"
-    else
-      # Vote test name
-      title = if test.response.schema then 'Validate response code and body' else 'Validate response code only'
+    # Vote test name
+    title = if test.response.schema then 'Validate response code and body' else 'Validate response code only'
     suite.addTest new Mocha.Test title, _.bind (done) ->
       @test.run done
     , {test}
