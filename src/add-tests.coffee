@@ -22,6 +22,9 @@ parseHeaders = (raml) ->
 
   headers
 
+selectSchemes = (names, schemes) ->
+  return _.pick(schemes, names)
+
 # addTests(raml, tests, hooks, [parent], callback)
 addTests = (raml, tests, hooks, parent, callback) ->
 
@@ -37,19 +40,36 @@ addTests = (raml, tests, hooks, parent, callback) ->
     params: {}
   }
 
-  securedBy = raml.securedBy ? parent.securedBy
+  console.error("\n\n\nworking on:")
+  console.error(raml.relativeUri)
+  console.error("raml.securedBy:")
+  console.error(raml.securedBy)
+  console.error("parent.securedBy:")
+  console.error(parent.securedBy)
+  top_securedBy = raml.securedBy ? parent.securedBy
+  console.error("top_securedBy:")
+  console.error(top_securedBy)
+  # if not parent.security_schemes?
+  #     parent.security_schemes = {}
+  #     for scheme_map in raml.securitySchemes ? []
+  #       for s in top_securedBy ? []
+  #         if scheme_map[s]?
+  #           parent.security_schemes[s] ?= []
+  #           parent.security_schemes[s].push(scheme_map[s])
+
   if not parent.security_schemes?
-      parent.security_schemes = {}
-      for scheme_map in raml.securitySchemes ? []
-        for s in securedBy ? []
-          if scheme_map[s]?
-            parent.security_schemes[s] ?= []
-            parent.security_schemes[s].push(scheme_map[s])
+    parent.security_schemes = {}
+    for scheme_map in raml.securitySchemes ? []
+      for scheme_name, scheme of scheme_map
+        parent.security_schemes[scheme_name] ?= []
+        parent.security_schemes[scheme_name].push(scheme)
 
   # Iterate endpoint
   async.each raml.resources, (resource, callback) ->
     path = resource.relativeUri
     params = {}
+
+    resource_securedBy = resource.securedBy ? top_securedBy
 
     # Apply parent properties
     path = parent.path + path
@@ -67,6 +87,8 @@ addTests = (raml, tests, hooks, parent, callback) ->
     async.each resource.methods, (api, callback) ->
       method = api.method.toUpperCase()
       headers = parseHeaders(api.headers)
+
+      method_securedBy = api.securedBy ? resource_securedBy
 
       buildTest = (status, res, security) ->
         testName = "#{method} #{path} -> #{status}"
@@ -103,7 +125,7 @@ addTests = (raml, tests, hooks, parent, callback) ->
         if t?
           tests.push t
 
-      for scheme, lst of parent.security_schemes
+      for scheme, lst of selectSchemes(method_securedBy, parent.security_schemes)
         for l in lst
           for status, res of l.describedBy?.responses ? {}
             t = buildTest(status, res, scheme)
@@ -118,7 +140,7 @@ addTests = (raml, tests, hooks, parent, callback) ->
       parent = {
         path: path,
         params: params,
-        securedBy: securedBy,
+        securedBy: resource_securedBy,
         security_schemes: parent.security_schemes
       }
       addTests resource, tests, hooks, parent, callback
