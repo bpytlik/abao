@@ -109,6 +109,33 @@ describe '#addTests', ->
         assert.isNull res.headers
         assert.isNull res.body
 
+    describe 'when hooks skip one POST', ->
+      tests = []
+      callback = ''
+
+      before (done) ->
+
+        hooks.skips = ["POST /machines -> 201"]
+        ramlParser.loadFile("#{__dirname}/../fixtures/1-get-1-post.raml")
+        .then (data) ->
+          callback = sinon.stub()
+          callback.returns(done())
+
+          addTests data, tests, hooks, callback
+        , done
+      after ->
+        tests = []
+        hooks.skips = []
+
+      it 'should run callback', ->
+        assert.ok callback.called
+
+      it 'should add 1 test', ->
+        assert.lengthOf tests, 1
+
+      it 'should set test.name', ->
+        assert.equal tests[0].name, 'GET /machines -> 200'
+
     describe 'when raml includes multiple referencing schemas', ->
 
       tests = []
@@ -259,8 +286,6 @@ describe '#addTests', ->
         assert.lengthOf tests, 16
 
       it 'should set test.name', ->
-        for t in tests
-          console.error(t.name)
         assert.equal tests[0].name, 'GET /machines -> 200'
         assert.equal tests[1].name, 'GET /machines -> 401 (oauth_2_0)'
         assert.equal tests[2].name, 'GET /machines -> 403 (oauth_2_0)'
