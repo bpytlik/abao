@@ -2,7 +2,7 @@ async = require 'async'
 _ = require 'underscore'
 csonschema = require 'csonschema'
 
-Test = require './test'
+{Test, SkippedTest} = require './test'
 
 parseSchema = (source) ->
   if source.contains('$schema')
@@ -32,9 +32,6 @@ addTests = (raml, tests, hooks, parent, callback) ->
 
   return callback() unless raml.resources
 
-  console.error("raml keys:")
-  console.error(Object.keys(raml))
-
   securedBy = raml.securedBy ? parent.securedBy
   parent ?= {
     path: "",
@@ -47,8 +44,6 @@ addTests = (raml, tests, hooks, parent, callback) ->
           if scheme_map[s]?
             parent.security_schemes[s] ?= []
             parent.security_schemes[s].push(scheme_map[s])
-  console.error("parent.security_schemes:")
-  console.error(parent.security_schemes)
 
   # Iterate endpoint
   async.each raml.resources, (resource, callback) ->
@@ -76,6 +71,8 @@ addTests = (raml, tests, hooks, parent, callback) ->
         testName = "#{method} #{path} -> #{status}"
         if security?
           testName += " (#{security})"
+        if testName in hooks.skips
+          return new SkippedTest(testName, status)
 
         # Append new test to tests
         test = new Test(testName, hooks.contentTests[testName])
@@ -104,12 +101,8 @@ addTests = (raml, tests, hooks, parent, callback) ->
         tests.push buildTest(status, res)
 
       for scheme, lst of parent.security_schemes
-        console.error("scheme: #{scheme}")
         for l in lst
-          console.error("l:")
-          console.error(l)
           for status, res of l.describedBy?.responses ? {}
-            console.error("sec status:#{status}")
             tests.push buildTest(status, res, scheme)
 
       callback()

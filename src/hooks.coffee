@@ -10,6 +10,7 @@ class Hooks
     @beforeEachHooks = []
     @afterEachHooks = []
     @contentTests = {}
+    @skips = []
 
   before: (name, hook) =>
     @addHook(@beforeHooks, name, hook)
@@ -30,6 +31,8 @@ class Hooks
     @afterEachHooks.push(hook)
 
   addHook: (hooks, name, hook) =>
+    if name in @skips
+      throw new Error("Cannot skip #{name} while also having a hook for it.")
     if hooks[name]
       hooks[name].push hook
     else
@@ -39,6 +42,11 @@ class Hooks
     if @contentTests[name]?
       throw new Error("Cannot have more than one test with the name: #{name}")
     @contentTests[name] = hook
+
+  skip: (name) =>
+    if @beforeHooks[name]? or @afterHooks[name]? or @contentTests[name]?
+      throw new Error("Cannot skip #{name} while also having a hook for it.")
+    @skips.push(name)
 
   runBeforeAll: (callback) =>
     async.series @beforeAllHooks, (err, results) ->
