@@ -382,3 +382,30 @@ describe '#addTests', ->
       it 'should added 1 test', ->
         assert.lengthOf tests, 1
         assert.equal tests[0].name, 'POST /machines -> 204'
+
+    describe 'when raml has multiple resources', ->
+
+      tests = []
+      callback = ''
+
+      before (done) ->
+        ramlParser.loadFile("#{__dirname}/../fixtures/multiple_resources.raml")
+        .then (data) ->
+          callback = sinon.stub()
+          callback.returns(done())
+
+          addTests data, tests, callback
+        , done
+
+      after ->
+        tests = []
+
+      it 'should run callback', ->
+        assert.ok callback.called
+
+      it 'should added 2 tests', ->
+        assert.lengthOf tests, 2
+
+      it 'should set test.name', ->
+        assert.equal tests[0].name, 'GET /songs/song1 -> 200'
+        assert.equal tests[1].name, 'GET /songs/song2 -> 200'
