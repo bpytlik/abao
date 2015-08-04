@@ -391,10 +391,12 @@ describe '#addTests', ->
       before (done) ->
         ramlParser.loadFile("#{__dirname}/../fixtures/multiple-resources.raml")
         .then (data) ->
+          console.error("got data")
           callback = sinon.stub()
           callback.returns(done())
 
-          addTests data, tests, callback
+          console.error("calling addTests")
+          addTests data, tests, hooks, callback
         , done
 
       after ->
@@ -403,7 +405,7 @@ describe '#addTests', ->
       it 'should run callback', ->
         assert.ok callback.called
 
-      it 'should added 2 tests', ->
+      it 'should add 2 tests', ->
         assert.lengthOf tests, 2
 
       it 'should set test.name', ->

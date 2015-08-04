@@ -27,6 +27,7 @@ selectSchemes = (names, schemes) ->
 
 # addTests(raml, tests, hooks, [parent], callback)
 addTests = (raml, tests, hooks, parent, callback) ->
+  console.error("in addTests")
 
   # Handle 4th optional param
   if _.isFunction(parent)
@@ -51,6 +52,7 @@ addTests = (raml, tests, hooks, parent, callback) ->
 
   # Iterate endpoint
   async.each raml.resources, (resource, callback) ->
+    console.error("resource: #{resource.relativeUri} parent:#{parent.path}")
     path = resource.relativeUri
     params = {}
 
@@ -71,19 +73,23 @@ addTests = (raml, tests, hooks, parent, callback) ->
     # Iterate response method
     async.each resource.methods, (api, callback) ->
       method = api.method.toUpperCase()
+      console.error("method:#{method}")
       headers = parseHeaders(api.headers)
 
       method_securedBy = api.securedBy ? resource_securedBy
 
       buildTest = (status, res, security) ->
+        console.error("in buildTest")
         testName = "#{method} #{path} -> #{status}"
         if security?
           testName += " (#{security})"
         if testName in hooks.skips
+          console.error("skipping")
           return null
 
         # Append new test to tests
         test = new Test(testName, hooks.contentTests[testName])
+        console.error("built TEST")
 
         # Update test.request
         test.request.path = path
@@ -96,17 +102,27 @@ addTests = (raml, tests, hooks, parent, callback) ->
           catch
             console.warn "invalid request example of #{test.name}"
         test.request.params = params
+        console.error("updated test.request")
 
         # Update test.response
         test.response.status = status
         test.response.schema = null
         if (res?.body?['application/json']?.schema)
           test.response.schema = parseSchema res.body['application/json'].schema
+        console.error("updated test.response")
         return test
 
       # Iterate response status
       for status, res of api.responses
-        t = buildTest(status, res)
+        console.error("building test for #{status}")
+        try
+          t = buildTest(status, res)
+        catch err
+          console.error("err:")
+          console.error(err.message)
+          console.error(err.stack)
+          throw err
+        console.error("back from building test for #{status}")
         if t?
           tests.push t
 
@@ -117,18 +133,19 @@ addTests = (raml, tests, hooks, parent, callback) ->
             if t?
               tests.push t
 
+      console.error("calling callback")
       callback()
     , (err) ->
       return callback(err) if err
 
       # Recursive
-      parent = {
+      new_parent = {
         path: path,
         params: params,
         securedBy: resource_securedBy,
         security_schemes: parent.security_schemes
       }
-      addTests resource, tests, hooks, parent, callback
+      addTests resource, tests, hooks, new_parent, callback
   , callback
 
 
