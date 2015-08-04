@@ -389,7 +389,7 @@ describe '#addTests', ->
       callback = ''
 
       before (done) ->
-        ramlParser.loadFile("#{__dirname}/../fixtures/multiple_resources.raml")
+        ramlParser.loadFile("#{__dirname}/../fixtures/multiple-resources.raml")
         .then (data) ->
           callback = sinon.stub()
           callback.returns(done())
