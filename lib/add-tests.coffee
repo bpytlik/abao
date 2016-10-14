@@ -3,7 +3,7 @@ _ = require 'underscore'
 csonschema = require 'csonschema'
 
 selectSchemes = (names, schemes) ->
-    return _.pick(schemes, names)
+  return _.pick(schemes, names)
 
 parseSchema = (source) ->
   if source.contains('$schema')
