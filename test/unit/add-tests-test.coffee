@@ -124,7 +124,7 @@ describe '#addTests', ->
       before (done) ->
 
         hooks.skippedTests = ["POST /machines -> 201"]
-        ramlParser.loadFile("#{__dirname}/../fixtures/1-get-1-post.raml")
+        ramlParser.loadFile("#{RAML_DIR}/1-get-1-post.raml")
         .then (data) ->
           callback = sinon.stub()
           callback.returns(done())
@@ -276,19 +276,20 @@ describe '#addTests', ->
         assert.deepEqual test.request.params,
           machine_id: '1'
 
-    describe 'when raml has securedBy set at top level', ->
+    describe 'when RAML has securedBy set at top level', ->
       tests = []
+      testFactory = new TestFactory()
       callback = ''
 
       before (done) ->
 
         ramlParser.loadFile(
-          "#{__dirname}/../fixtures/three-levels-security-top.raml"
+          "#{RAML_DIR}/three-levels-security-top.raml"
         ).then (data) ->
           callback = sinon.stub()
           callback.returns(done())
 
-          addTests data, tests, hooks, callback
+          addTests data, tests, hooks, callback, testFactory
         , done
 
       after ->
@@ -488,20 +489,21 @@ describe '#addTests', ->
       it 'should not append query parameters', ->
         assert.deepEqual tests[0].request.query, {}
 
-    describe 'when raml has multiple resources', ->
+    describe 'when RAML has multiple resources', ->
 
       tests = []
+      testFactory = new TestFactory()
       callback = ''
 
       before (done) ->
-        ramlParser.loadFile("#{__dirname}/../fixtures/multiple-resources.raml")
+        ramlParser.loadFile("#{RAML_DIR}/multiple-resources.raml")
         .then (data) ->
           console.error("got data")
           callback = sinon.stub()
           callback.returns(done())
 
           console.error("calling addTests")
-          addTests data, tests, hooks, callback
+          addTests data, tests, hooks, callback, testFactory
         , done
 
       after ->

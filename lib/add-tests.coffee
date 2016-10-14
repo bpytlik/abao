@@ -146,7 +146,7 @@ addTests = (raml, tests, hooks, parent, callback, testFactory) ->
         securedBy: resource_securedBy,
         security_schemes: parent.security_schemes
       }
-      addTests resource, tests, hooks, new_parent, callback
+      addTests resource, tests, hooks, new_parent, callback, testFactory
   , callback
 
 

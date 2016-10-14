@@ -43,6 +43,8 @@ module.exports = (grunt) ->
         options:
           reporter: 'mocha-phantom-coverage-reporter'
           require: 'coffee-script/register'
+          bail: true
+          grep: ".*three-levels.*endpoints"
         src: [
           # Unit Test
           'test/unit/*.coffee'
