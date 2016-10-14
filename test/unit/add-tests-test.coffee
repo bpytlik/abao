@@ -291,7 +291,7 @@ describe '#addTests', ->
 
           addTests data, tests, hooks, callback, testFactory
         , done
-
+        return
       after ->
         tests = []
 
@@ -505,7 +505,7 @@ describe '#addTests', ->
           console.error("calling addTests")
           addTests data, tests, hooks, callback, testFactory
         , done
-
+        return
       after ->
         tests = []
 
