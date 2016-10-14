@@ -32,6 +32,8 @@ class Hooks
     @afterEachHooks.push(hook)
 
   addHook: (hooks, name, hook) ->
+    if name in @skippedTests
+      throw new Error("Cannot skip #{name} while also having a jook for it.")
     if hooks[name]
       hooks[name].push hook
     else
@@ -40,6 +42,8 @@ class Hooks
   test: (name, hook) =>
     if @contentTests[name]?
       throw new Error("Cannot have more than one test with the name: #{name}")
+    if name in @skippedTests
+      throw new Error("Cannot skip #{name} while also having a jook for it.")
     @contentTests[name] = hook
 
   runBeforeAll: (callback) =>
@@ -67,6 +71,8 @@ class Hooks
     , callback
 
   skip: (name) =>
+    if @beforeHooks[name]? or @afterHooks[name]? or @contentTests[name]?
+      throw new Error("Cannot skip #{name} while also having a hook for it.")
     @skippedTests.push name
 
   hasName: (name) =>
