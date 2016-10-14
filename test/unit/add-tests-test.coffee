@@ -118,6 +118,7 @@ describe '#addTests', ->
 
     describe 'when hooks skip one POST', ->
       tests = []
+      testFactory = new TestFactory()
       callback = ''
 
       before (done) ->
@@ -128,8 +129,9 @@ describe '#addTests', ->
           callback = sinon.stub()
           callback.returns(done())
 
-          addTests data, tests, hooks, callback
+          addTests data, tests, hooks, callback, testFactory
         , done
+        return
       after ->
         tests = []
         hooks.skippedTests = []
